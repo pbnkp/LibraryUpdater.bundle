@@ -1,55 +1,63 @@
 ####################################################################################################
 
-APPLICATIONS_PREFIX = "/applications/libraryupdater"
-
-NAME = L('Library Updater')
+PREFIX = "/applications/libraryupdater"
+NAME   = 'Library Updater'
 
 ART         = 'art-default.png'
 ICON        = 'icon-default.png'
-PLEX_URL    = 'http://localhost:32400/library/sections'
+PMS_URL     = 'http://%s:32400/library/sections/'
 
 ####################################################################################################
 
 def Start():
-
-    Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, L('Library Updater'), ICON, ART)
-
-    Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
-    Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
+    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
+    Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
 
     MediaContainer.art = R(ART)
     MediaContainer.title1 = NAME
+    MediaContainer.viewGroup = 'List'
     DirectoryItem.thumb = R(ICON)
+    PopupDirectoryItem.thumb = R(ICON)
 
 ####################################################################################################
 
 def MainMenu():
+    dir = MediaContainer(noCache=True)
 
-    dir = MediaContainer(viewGroup="InfoList")
+    all_keys = []
 
-    sectionsPage = HTML.ElementFromURL(PLEX_URL, errors='ignore')
-    
-    dir.Append(Function(DirectoryItem(UpdateSection, title='All Sections', subtitle='Force update of all sections'),
-        section='all'))
-    
-    for section in sectionsPage.xpath('//directory'):
+    sections = XML.ElementFromURL(PMS_URL % (Prefs['host']), errors='ignore').xpath('//Directory')
+    for section in sections:
         key = section.get('key')
         title = section.get('title')
-        dir.Append(Function(DirectoryItem(UpdateSection, title=title, subtitle='Force update of '+title+' section'),
-            section=key))
-    
+        dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update section "' + title + '"'), title=title, key=list(key)))
+        all_keys.append(key)
+
+    if len(all_keys) > 0:
+      dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update all sections'), title='All sections', key=all_keys))
+
     return dir
 
 ####################################################################################################
 
-def UpdateSection(sender, section):
-    '''Tell PMS to update the given section'''
-    url = PLEX_URL +'/' + section + '/refresh?force=1'
-    
-    try:
-        update = HTTP.Request(url, errors='ignore').content
-    except:
-        return MessageContainer(NAME, L('Force update failed.'))
-        
-    return MessageContainer(NAME, L('Force update started.'))
-    
+def UpdateType(sender, title, key):
+    dir = MediaContainer()
+    dir.Append(Function(DirectoryItem(UpdateSection, title='Normal update'), title=title, key=key, force=False))
+    dir.Append(Function(DirectoryItem(UpdateSection, title='Force update'), title=title, key=key, force=True))
+    return dir
+
+####################################################################################################
+
+def UpdateSection(sender, title, key, force):
+    for section in key:
+        url = PMS_URL % (Prefs['host'])  + section + '/refresh'
+        if force:
+            url += '?force=1'
+        update = HTTP.Request(url, cacheTime=1).content
+
+    if title == 'All sections':
+        return MessageContainer(title, 'All sections will be updated!')
+    elif len(key) > 1:
+        return MessageContainer(title, 'All chosen sections will be updated!')
+    else:
+        return MessageContainer(title, 'Section "' + title + '" will be updated!')
