@@ -1,11 +1,11 @@
 ####################################################################################################
 
-PREFIX = "/applications/libraryupdater"
-NAME   = 'Library Updater'
+PREFIX  = '/applications/libraryupdater'
+NAME    = 'Library Updater'
 
-ART         = 'art-default.png'
-ICON        = 'icon-default.png'
-PMS_URL     = 'http://%s:32400/library/sections/'
+ART     = 'art-default.png'
+ICON    = 'icon-default.png'
+PMS_URL = 'http://%s/library/sections/'
 
 ####################################################################################################
 
@@ -35,6 +35,8 @@ def MainMenu():
 
     if len(all_keys) > 0:
       dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update all sections'), title='All sections', key=all_keys))
+
+    dir.Append(PrefsItem('Preferences', thumb=R('icon-prefs.png')))
 
     return dir
 
