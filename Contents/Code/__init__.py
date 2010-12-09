@@ -3,7 +3,7 @@
 PREFIX  = '/applications/libraryupdater'
 NAME    = 'Library Updater'
 
-ART     = 'art-default.png'
+ART     = 'art-default.jpg'
 ICON    = 'icon-default.png'
 PMS_URL = 'http://%s/library/sections/'
 
