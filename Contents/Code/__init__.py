@@ -26,12 +26,16 @@ def MainMenu():
 
     all_keys = []
 
-    sections = XML.ElementFromURL(PMS_URL % (Prefs['host']), errors='ignore').xpath('//Directory')
-    for section in sections:
-        key = section.get('key')
-        title = section.get('title')
-        dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update section "' + title + '"'), title=title, key=list(key)))
-        all_keys.append(key)
+    try:
+      sections = XML.ElementFromURL(GetPmsHost(), errors='ignore').xpath('//Directory')
+      for section in sections:
+          key = section.get('key')
+          title = section.get('title')
+          dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update section "' + title + '"'), title=title, key=list(key)))
+          all_keys.append(key)
+    except:
+      dir.header = 'Couldn\'t find PMS instance'
+      dir.message = 'Add or update the address of PMS in the plugin\'s preferences'
 
     if len(all_keys) > 0:
       dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update all sections'), title='All sections', key=all_keys))
@@ -45,14 +49,14 @@ def MainMenu():
 def UpdateType(sender, title, key):
     dir = MediaContainer()
     dir.Append(Function(DirectoryItem(UpdateSection, title='Normal update'), title=title, key=key, force=False))
-    dir.Append(Function(DirectoryItem(UpdateSection, title='Force update'), title=title, key=key, force=True))
+    dir.Append(Function(DirectoryItem(UpdateSection, title='Forced update'), title=title, key=key, force=True))
     return dir
 
 ####################################################################################################
 
 def UpdateSection(sender, title, key, force):
     for section in key:
-        url = PMS_URL % (Prefs['host'])  + section + '/refresh'
+        url = GetPmsHost() + section + '/refresh'
         if force:
             url += '?force=1'
         update = HTTP.Request(url, cacheTime=1).content
@@ -63,3 +67,13 @@ def UpdateSection(sender, title, key, force):
         return MessageContainer(title, 'All chosen sections will be updated!')
     else:
         return MessageContainer(title, 'Section "' + title + '" will be updated!')
+
+####################################################################################################
+
+def GetPmsHost():
+  host = Prefs['host']
+
+  if host.find(':') == -1:
+    host += ':32400'
+
+  return PMS_URL % (host)
