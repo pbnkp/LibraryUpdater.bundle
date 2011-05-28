@@ -48,17 +48,20 @@ def MainMenu():
 
 def UpdateType(sender, title, key):
     dir = MediaContainer()
-    dir.Append(Function(DirectoryItem(UpdateSection, title='Normal update'), title=title, key=key, force=False))
-    dir.Append(Function(DirectoryItem(UpdateSection, title='Forced update'), title=title, key=key, force=True))
+    dir.Append(Function(DirectoryItem(UpdateSection, title='Turbo Scan'), title=title, key=key))
+    dir.Append(Function(DirectoryItem(UpdateSection, title='Deep Scan'), title=title, key=key, deep=True))
+    dir.Append(Function(DirectoryItem(UpdateSection, title='Force Metadata Refresh'), title=title, key=key, force=True))
     return dir
 
 ####################################################################################################
 
-def UpdateSection(sender, title, key, force):
+def UpdateSection(sender, title, key, force=False, deep=False):
     for section in key:
         url = GetPmsHost() + section + '/refresh'
         if force:
             url += '?force=1'
+        elif deep:
+            url += '?deep=1'
         update = HTTP.Request(url, cacheTime=1).content
 
     if title == 'All sections':
