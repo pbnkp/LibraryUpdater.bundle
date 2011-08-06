@@ -1,6 +1,6 @@
 ####################################################################################################
 
-PREFIX  = '/applications/libraryupdater'
+PREFIX  = '/video/libraryupdater'
 NAME    = 'Library Updater'
 
 ART     = 'art-default.jpg'
