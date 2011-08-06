@@ -32,7 +32,7 @@ def MainMenu():
           key = section.get('key')
           title = section.get('title')
           Log('%s: %s' %(title, key))
-          dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update section "' + title + '"'), title=title, key=key))
+          dir.Append(Function(PopupDirectoryItem(UpdateType, title='Update section "' + title + '"'), title=title, key=[key]))
           all_keys.append(key)
     except:
       dir.header = 'Couldn\'t find PMS instance'
